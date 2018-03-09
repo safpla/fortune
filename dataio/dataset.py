@@ -1,6 +1,8 @@
 import h5py
+import numpy as np
 import random
 import tensorflow as tf
+from matplotlib import pyplot as plt
 
 class Dataset(object):
     def __init__(self, config):
@@ -53,11 +55,12 @@ class Dataset(object):
         np.random.shuffle(self._index)
         return
 
+
 if __name__ == '__main__':
     filename = '/home/remote/Data/fashionAI/train.hdf5'
     dataset = Dataset(1)
     dataset.load_h5py(filename)
     img, label, attrKey = dataset.next_batch(1)
-    print(label)
-    print(attrKey)
-    print(img.shape)
+    img = img[0,:,:,:]
+    plt.imshow(img)
+    plt.show()
