@@ -1,11 +1,11 @@
 import tensorflow as tf
 import csv
-import os,sys
+import os, sys
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import socket
 import numpy as np
-import cv2
+from PIL import Image
 import h5py
 
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -36,20 +36,21 @@ def main():
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         ndata = len(list(spamreader))
 
-    f = h5py.File(os.path.join(datafolder, dataset_name + '.hdf5'), w)
-    config = Parser(os.path.join(root_dir, 'config/skirt_length.cfg'))
-    batch_shape = [config.batch_size, config.image_height, config.image_width, 3]
-    data_shape = [ndata, config.image_height, config.image_width, 3]
+    f = h5py.File(os.path.join(datafolder, dataset_name + '.hdf5'), 'w')
+    config_file = os.path.join(root_dir, 'config/skirt_length.cfg')
+    config = Parser(config_file)
+    batch_shape = (config.batch_size, config.image_height, config.image_width, 3)
+    data_shape = (ndata, config.image_height, config.image_width, 3)
     dataset_img = f.create_dataset('img', data_shape, chunks=batch_shape,
                                    dtype='f')
 
-    batch_shape = [config.batch_size]
-    data_shape = [ndata]
+    batch_shape = (config.batch_size,)
+    data_shape = (ndata,)
     dataset_attrKey = f.create_dataset('attrKey', data_shape,
                                        chunks=batch_shape, dtype='i')
 
-    batch_shape = [config.batch_size, config.max_label]
-    data_shape = [ndata, config.max_label]
+    batch_shape = (config.batch_size, config.max_label)
+    data_shape = (ndata, config.max_label)
     dataset_label = f.create_dataset('label', data_shape, chunks=batch_shape,
                                      dtype='i')
 
@@ -61,8 +62,10 @@ def main():
             attrKey = row[1]
             label = row[2]
             img_path = os.path.join(raw_train_folder, img)
-            image = mpimg.imread(img_path)
-            image = cv2.resize(image, (config.image_height, config.image_width))
+            image = Image.open(img_path)
+            image = image.resize((config.image_height, config.image_width))
+            image = np.array(image)
+
             attrKey = task2index[attrKey]
             label = string2label(label, config.max_label)
             dataset_img[num, :, :, :] = image
@@ -71,3 +74,6 @@ def main():
             num += 1
         print(num)
         f.close()
+
+if __name__ == '__main__':
+    main()
