@@ -20,7 +20,7 @@ if hostName == 'ubuntu':
     datafolder = '/home/leo/Data/fashionAI/'
 else:
     csvfilename = '/home/remote/Data/fashionAI/train_data/Annotations/train.csv'
-    raw_train_folder = '/home/remote/Data/fashionAI/train_data/Images/'
+    raw_train_folder = '/home/remote/Data/fashionAI/train_data/'
     datafolder = '/home/remote/Data/fashionAI/'
 
 def string2label(string, nlabel):
@@ -60,20 +60,21 @@ def main():
         for row in spamreader:
             img = row[0]
             attrKey = row[1]
+            print(attrKey)
             label = row[2]
             img_path = os.path.join(raw_train_folder, img)
             image = Image.open(img_path)
             image = image.resize((config.image_height, config.image_width))
             image = np.array(image)
-
             attrKey = task2index[attrKey]
             label = string2label(label, config.max_label)
             dataset_img[num, :, :, :] = image
             dataset_attrKey[num] = attrKey
             dataset_label[num, :] = label
+            print(label)
             num += 1
-        print(num)
         f.close()
+
 
 if __name__ == '__main__':
     main()
