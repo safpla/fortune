@@ -60,9 +60,10 @@ class Model:
         #self.train_step = self.optimizer
 
         gvs = self.optimizer.compute_gradients(loss)
-        capped_gvs = [((tf.clip_by_norm(grad, self.config.grad_lim)), var)
-                      for grad, var in gvs]
-        self.train_step = self.optimizer.apply_gradients(capped_gvs)
+        #capped_gvs = [((tf.clip_by_norm(grad, self.config.grad_lim)), var)
+        #              for grad, var in gvs]
+        #self.train_step = self.optimizer.apply_gradients(capped_gvs)
+        self.train_step = self.optimizer.apply_gradients(gvs)
 
     def load_pretrain(self, sess):
         restorer = tf.train.Saver(self.variables_to_restore)
@@ -97,15 +98,13 @@ class Model:
         feed_dict = {self.input_plh: img,
                      self.label_plh: label,
                      self.is_training: False}
-        checkout = [self.logits, self.loss]
+        checkout = [self.logits, self.loss, self.label_plh]
         r = sess.run(checkout, feed_dict=feed_dict)
         loss = r[1]
-        print(type(loss))
         results = {}
         results['logits'] = r[0]
         results['label'] = label
         return loss, results
-
 
     def test_by_dataset(self, sess, dataset):
         dataset.reset()

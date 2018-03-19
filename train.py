@@ -3,6 +3,7 @@ import numpy as np
 import os, sys
 import time
 
+print('run into here')
 root_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, root_path)
 from dataio.dataset import Dataset
@@ -45,6 +46,8 @@ def main():
     batch_size = config.batch_size
     start_time = time.time()
 
+    valid_samples = dataset_valid.next_batch(batch_size)
+
     while (timedelay < config.timedelay_num) and (steps < config.max_step):
         samples = dataset.next_batch(batch_size)
         steps += 1
@@ -53,12 +56,12 @@ def main():
             train_loss, train_results = model.test_by_batch(sess, samples)
             train_acc = evaluate_metrics(train_results)
 
-            valid_loss, valid_results = model.test_by_dataset(sess, dataset_valid)
+            valid_loss, valid_results = model.test_by_batch(sess, valid_samples)
             valid_acc = evaluate_metrics(valid_results)
 
             if best_loss > valid_loss or best_acc < valid_acc:
                 timedelay = 0
-                saver.save(sess, os.path.join(config.exp_dir, 'E01'),
+                saver.save(sess, os.path.join(config.exp_dir, 'E01/fashionAI'),
                            global_step=steps)
             else:
                 timedelay += 1
@@ -69,7 +72,7 @@ def main():
                 best_loss = valid_loss
 
             sys.stdout.write('\nBatches: %d' % steps)
-            sys.stdout.write('\nBatch Time: %4fs' % (1.0 * (time.time() - start_time) / checkpoint_num))
+            sys.stdout.write('\nBatch Time: %4fs' % (1.0 * (time.time() - start_time) / config.summary_steps))
 
             sys.stdout.write('\nTrain acc: %.6f' % train_acc)
             sys.stdout.write('\tTrain Loss: %.6f' % train_loss)
@@ -78,6 +81,17 @@ def main():
             sys.stdout.write('\nBest acc: %.6f' % best_acc)
             sys.stdout.write('\tBest Loss: %.6f' % best_loss)
             sys.stdout.write('\n\n')
+
+            #print('\nBatches: %d' % steps, end='')
+            #print('\nBatch Time: %4fs' % (1.0 * (time.time() - start_time) / config.summary_steps), end='')
+
+            #print('\nTrain acc: %.6f' % train_acc, end='')
+            #print('\tTrain Loss: %.6f' % train_loss, end='')
+            #print('\nValid acc: %.6f' % valid_acc, end='')
+            #print('\tValid Loss: %.6f' % valid_loss, end='')
+            #print('\nBest acc: %.6f' % best_acc, end='')
+            #print('\tBest Loss: %.6f' % best_loss, end='')
+            #print('\n\n')
             start_time = time.time()
 
     print('\nModel saved at {}'.format(config.exp_dir))
